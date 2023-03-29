@@ -1,0 +1,34 @@
+load("@rules_python//python:defs.bzl", "py_binary")
+load("@io_bazel_rules_docker//python3:image.bzl", "py3_image")
+
+load("@my_deps//:requirements.bzl", "requirement")
+load("@io_bazel_rules_docker//container:container.bzl", "container_image")
+
+LIBS = [
+    requirement("flask"),
+    requirement("google-cloud-storage"),
+    requirement("google-auth"),
+]
+
+container_image(
+    name = "server_image",
+    base = ":py_image",
+    ports = ["8080"],
+    repository = "us-central1-docker.pkg.dev/builder-project/r1/py_server",   
+)
+
+py3_image(
+    name="py_image",
+    srcs=[
+        ":main"
+    ],
+    main="main.py",
+    deps = LIBS,
+    base = "@distroless_python3-debian11//image",
+)
+
+py_binary(
+    name = "main",
+    srcs = ["main.py"],
+    deps = LIBS,
+)
